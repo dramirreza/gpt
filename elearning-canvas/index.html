@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive eLearning Canvas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    #toolbar { background: #333; color: #fff; padding: 8px; display: flex; align-items: center; }
+    #toolbar label { cursor: pointer; margin-right: 1rem; }
+    #canvas3d { width: 100%; height: 50vh; }
+    #canvas2d { width: 100%; height: 50vh; }
+    #content { width: 100%; display: flex; flex-direction: column; height: calc(100vh - 40px); }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <div id="toolbar" class="ribbon">
+    <label for="image-upload"><i class="fas fa-upload"></i> Upload Image</label>
+    <input type="file" id="image-upload" accept="image/*">
+  </div>
+
+  <div id="content">
+    <div id="canvas3d">
+      <a-scene embedded>
+        <a-box id="annotated-box" position="0 1 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+        <a-sphere position="1.5 1 -4" radius="1" color="#EF2D5E"></a-sphere>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+        <a-text id="annotation" value="Important object" position="0 2 -3" visible="false" color="#000"></a-text>
+        <a-sky color="#ECECEC"></a-sky>
+      </a-scene>
+    </div>
+
+    <div id="canvas2d"></div>
+  </div>
+
+  <script>
+    // ----- p5.js 2D canvas -----
+    let img = null;
+    let imgX = 50, imgY = 50;
+    let imgW = 200, imgH = 200;
+    let dragging = false, resizing = false;
+    let offsetX = 0, offsetY = 0;
+    const handleSize = 12;
+
+    document.getElementById('image-upload').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        loadImage(URL.createObjectURL(file), loaded => {
+          img = loaded;
+          imgW = loaded.width;
+          imgH = loaded.height;
+        });
+      }
+    });
+
+    function setup() {
+      const c = createCanvas(windowWidth, windowHeight / 2);
+      c.parent('canvas2d');
+    }
+
+    function draw() {
+      background(220);
+      if (img) {
+        image(img, imgX, imgY, imgW, imgH);
+        fill(255);
+        stroke(0);
+        rect(imgX + imgW - handleSize, imgY + imgH - handleSize, handleSize, handleSize);
+      }
+    }
+
+    function mousePressed() {
+      if (!img) return;
+      const overHandle = mouseX >= imgX + imgW - handleSize && mouseX <= imgX + imgW &&
+                         mouseY >= imgY + imgH - handleSize && mouseY <= imgY + imgH;
+      if (overHandle) {
+        resizing = true;
+      } else if (mouseX >= imgX && mouseX <= imgX + imgW && mouseY >= imgY && mouseY <= imgY + imgH) {
+        dragging = true;
+        offsetX = mouseX - imgX;
+        offsetY = mouseY - imgY;
+      }
+    }
+
+    function mouseDragged() {
+      if (dragging) {
+        imgX = mouseX - offsetX;
+        imgY = mouseY - offsetY;
+      } else if (resizing) {
+        imgW = max(20, mouseX - imgX);
+        imgH = max(20, mouseY - imgY);
+      }
+    }
+
+    function mouseReleased() {
+      dragging = false;
+      resizing = false;
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight / 2);
+    }
+
+    // ----- A-Frame annotation -----
+    document.addEventListener('DOMContentLoaded', () => {
+      const box = document.getElementById('annotated-box');
+      const note = document.getElementById('annotation');
+      if (box && note) {
+        box.addEventListener('click', () => {
+          const visible = note.getAttribute('visible');
+          note.setAttribute('visible', visible === 'false');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
