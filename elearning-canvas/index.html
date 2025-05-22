@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive eLearning Canvas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    #canvas3d { width: 100%; height: 50vh; }
+    #canvas2d { width: 100%; height: 50vh; }
+    #content { width: 100%; display: flex; flex-direction: column; height: 100vh; }
+  </style>
+</head>
+<body>
+  <h1>Gamified eLearning Canvas</h1>
+  <p>
+    <label for="file-input">Upload image:</label>
+    <input type="file" id="file-input" accept="image/*">
+  </p>
+
+  <div id="content">
+    <div id="canvas3d">
+      <a-scene embedded>
+        <a-box position="0 1 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+        <a-sphere position="1.5 1 -4" radius="1" color="#EF2D5E"></a-sphere>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+        <a-sky color="#ECECEC"></a-sky>
+      </a-scene>
+    </div>
+
+    <div id="canvas2d"></div>
+  </div>
+
+  <script>
+    let uploadedImg;
+    let imgX = 50, imgY = 50;
+    let imgW = 200, imgH = 200;
+    let dragging = false;
+    let resizing = false;
+    const handleSize = 12;
+
+    document.getElementById('file-input').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      loadImage(url, img => {
+        uploadedImg = img;
+        imgW = img.width;
+        imgH = img.height;
+      });
+    });
+
+    function setup() {
+      const c = createCanvas(windowWidth, windowHeight / 2);
+      c.parent('canvas2d');
+    }
+
+    function draw() {
+      background(220);
+      if (uploadedImg) {
+        image(uploadedImg, imgX, imgY, imgW, imgH);
+        fill(255);
+        stroke(0);
+        rect(imgX + imgW - handleSize, imgY + imgH - handleSize, handleSize, handleSize);
+      }
+    }
+
+    function mousePressed() {
+      if (!uploadedImg) return;
+      const overHandle = mouseX >= imgX + imgW - handleSize && mouseX <= imgX + imgW &&
+                         mouseY >= imgY + imgH - handleSize && mouseY <= imgY + imgH;
+      if (overHandle) {
+        resizing = true;
+      } else if (mouseX >= imgX && mouseX <= imgX + imgW && mouseY >= imgY && mouseY <= imgY + imgH) {
+        dragging = true;
+      }
+    }
+
+    function mouseDragged() {
+      if (dragging) {
+        imgX += movedX;
+        imgY += movedY;
+      } else if (resizing) {
+        imgW += movedX;
+        imgH += movedY;
+      }
+    }
+
+    function mouseReleased() {
+      dragging = false;
+      resizing = false;
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight / 2);
+    }
+  </script>
+</body>
+</html>
