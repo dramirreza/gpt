@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive eLearning Canvas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    #canvas3d { width: 100%; height: 50vh; }
+    #canvas2d { width: 100%; height: 50vh; }
+    #content { width: 100%; display: flex; flex-direction: column; height: 100vh; }
+  </style>
+</head>
+<body>
+  <h1>Gamified eLearning Canvas</h1>
+
+  <input type="file" id="upload" accept="image/*">
+
+  <div id="content">
+    <div id="canvas3d">
+      <a-scene embedded>
+        <a-box position="0 1 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+        <a-sphere position="1.5 1 -4" radius="1" color="#EF2D5E"></a-sphere>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+        <a-sky color="#ECECEC"></a-sky>
+      </a-scene>
+    </div>
+
+    <div id="canvas2d"></div>
+  </div>
+
+  <script>
+    let x = 0;
+    let img = null;
+    let imgX = 0;
+    let imgY = 0;
+    let imgW = 0;
+    let imgH = 0;
+    let dragging = false;
+    let resizing = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function setup() {
+      const c = createCanvas(windowWidth, windowHeight / 2);
+      c.parent('canvas2d');
+    }
+
+    document.getElementById('upload').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        loadImage(URL.createObjectURL(file), loaded => {
+          img = loaded;
+          imgW = loaded.width;
+          imgH = loaded.height;
+          imgX = (width - imgW) / 2;
+          imgY = (height - imgH) / 2;
+        });
+      }
+    });
+
+    function draw() {
+      background(200);
+      if (img) {
+        image(img, imgX, imgY, imgW, imgH);
+        // draw resize handle
+        fill(255);
+        stroke(0);
+        rect(imgX + imgW - 10, imgY + imgH - 10, 10, 10);
+      } else {
+        fill('orange');
+        ellipse(x, height / 2, 50, 50);
+        x += 1;
+        if (x > width) x = 0;
+      }
+    }
+
+    function mousePressed() {
+      if (!img) return;
+      const handleX = imgX + imgW - 10;
+      const handleY = imgY + imgH - 10;
+      if (mouseX >= handleX && mouseX <= handleX + 10 &&
+          mouseY >= handleY && mouseY <= handleY + 10) {
+        resizing = true;
+      } else if (mouseX >= imgX && mouseX <= imgX + imgW &&
+                 mouseY >= imgY && mouseY <= imgY + imgH) {
+        dragging = true;
+        offsetX = mouseX - imgX;
+        offsetY = mouseY - imgY;
+      }
+    }
+
+    function mouseDragged() {
+      if (dragging) {
+        imgX = mouseX - offsetX;
+        imgY = mouseY - offsetY;
+      } else if (resizing) {
+        imgW = max(10, mouseX - imgX);
+        imgH = max(10, mouseY - imgY);
+      }
+    }
+
+    function mouseReleased() {
+      dragging = false;
+      resizing = false;
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight / 2);
+    }
+  </script>
+</body>
+</html>
