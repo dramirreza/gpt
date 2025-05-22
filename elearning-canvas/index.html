@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive eLearning Canvas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    #ribbon { background: #333; color: #fff; padding: 8px; display: flex; gap: 15px; align-items: center; }
+    #ribbon i { cursor: pointer; }
+    #content { width: 100%; display: flex; flex-direction: column; height: calc(100vh - 40px); }
+    #canvas3d { width: 100%; height: 50%; }
+    #canvas2d { width: 100%; height: 50%; }
+  </style>
+</head>
+<body>
+  <div id="ribbon">
+    <i id="dragTool" class="fa-solid fa-up-down-left-right" title="Drag elements"></i>
+    <i id="animateTool" class="fa-solid fa-play" title="Toggle animation"></i>
+    <i id="annotationTool" class="fa-solid fa-comment-dots" title="Toggle annotation"></i>
+  </div>
+
+  <div id="content">
+    <div id="canvas3d">
+      <a-scene embedded>
+        <a-box id="box" position="0 1 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+        <a-text id="box-note" value="A cube" position="0 2 -3" visible="false"></a-text>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+        <a-sky color="#ECECEC"></a-sky>
+      </a-scene>
+    </div>
+    <div id="canvas2d"></div>
+  </div>
+
+  <script>
+    // 3D annotation toggle
+    const box = document.getElementById('box');
+    const note = document.getElementById('box-note');
+    document.getElementById('annotationTool').addEventListener('click', () => {
+      const vis = note.getAttribute('visible');
+      note.setAttribute('visible', vis === 'false');
+    });
+    box.addEventListener('click', () => {
+      const vis = note.getAttribute('visible');
+      note.setAttribute('visible', vis === 'false');
+    });
+
+    // p5.js 2D canvas with draggable/animated rectangles
+    let shapes = [];
+    let selected = null;
+    let offsetX = 0, offsetY = 0;
+
+    class Draggable {
+      constructor(x, y, w, h) {
+        this.x = x; this.y = y; this.w = w; this.h = h;
+        this.animate = false; this.a = 0;
+      }
+      draw() {
+        push();
+        translate(this.x, this.y);
+        if (this.animate) {
+          rotate(this.a);
+          this.a += 0.05;
+        }
+        fill('skyblue');
+        rect(0, 0, this.w, this.h);
+        pop();
+      }
+      contains(px, py) {
+        return px >= this.x && px <= this.x + this.w && py >= this.y && py <= this.y + this.h;
+      }
+    }
+
+    function setup() {
+      const c = createCanvas(windowWidth, windowHeight / 2);
+      c.parent('canvas2d');
+      shapes.push(new Draggable(60, 60, 80, 60));
+    }
+
+    function draw() {
+      background(230);
+      for (const s of shapes) s.draw();
+    }
+
+    function mousePressed() {
+      for (const s of shapes) {
+        if (s.contains(mouseX, mouseY)) {
+          selected = s;
+          offsetX = mouseX - s.x;
+          offsetY = mouseY - s.y;
+          break;
+        }
+      }
+    }
+
+    function mouseDragged() {
+      if (selected) {
+        selected.x = mouseX - offsetX;
+        selected.y = mouseY - offsetY;
+      }
+    }
+
+    function mouseReleased() {
+      selected = null;
+    }
+
+    document.getElementById('animateTool').addEventListener('click', () => {
+      if (selected) selected.animate = !selected.animate;
+    });
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight / 2);
+    }
+  </script>
+</body>
+</html>
