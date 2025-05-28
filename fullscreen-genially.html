@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genially Fullscreen Toggle</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      cursor: pointer;
+      z-index: 2147483647;
+    }
+
+    #genially-fullscreen-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Full-Screen Overlay -->
+  <div id="fullscreen-overlay">
+    <h1>Click to Enter Full-Screen Experience</h1>
+  </div>
+
+  <!-- Genially Embed Container -->
+  <div id="genially-fullscreen-container">
+    <div id="67364140e30072ee50196546" class="genially-embed" style="width:100%;height:100%;"></div>
+  </div>
+  <script>
+    function launchFullscreen(element) {
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    }
+
+    function exitFullscreen() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement &&
+          !document.mozFullScreenElement &&
+          !document.webkitFullscreenElement &&
+          !document.msFullscreenElement) {
+        launchFullscreen(document.documentElement);
+      } else {
+        exitFullscreen();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var overlay = document.getElementById('fullscreen-overlay');
+
+      overlay.addEventListener('click', function (e) {
+        e.stopPropagation();
+        overlay.remove();
+        toggleFullscreen();
+        loadGenially();
+        enableFullscreenOnDoubleClick();
+      });
+
+      document.documentElement.addEventListener('click', function () {
+        if (!document.fullscreenElement) {
+          toggleFullscreen();
+        }
+      });
+    });
+
+    function loadGenially() {
+      (function (d) {
+        var js, id = 'genially-embed-js', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) { return; }
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = 'https://view.genially.com/static/embed/embed.js';
+        ref.parentNode.insertBefore(js, ref);
+      }(document));
+    }
+
+    function enableFullscreenOnDoubleClick() {
+      document.addEventListener('fullscreenchange', function () {
+        if (!document.fullscreenElement) {
+          document.addEventListener('dblclick', handleDoubleClickFullscreen);
+        } else {
+          document.removeEventListener('dblclick', handleDoubleClickFullscreen);
+        }
+      });
+    }
+
+    function handleDoubleClickFullscreen() {
+      launchFullscreen(document.documentElement);
+    }
+  </script>
+</body>
+</html>
