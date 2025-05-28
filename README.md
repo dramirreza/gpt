@@ -8,3 +8,7 @@ The demo lets you:
 - Drag the image around
 - Resize the image using a handle while keeping it sharp
 - View a small example 3D scene
+
+## Fullscreen Demo
+
+`fullscreen-genially.html` shows how to force a Genially embed into full-screen mode using a high z-index overlay.
